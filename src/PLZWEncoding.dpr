@@ -7,24 +7,26 @@ uses
   System.SysUtils;
 
 const
-  MAX_WORD_COUNT = 128;
+  MAX_WORD_COUNT = 256;
 
 type
   TDictionary = record
     WordCount: byte;
-    Words: array of string;
+    Words: array of ShortString;
   end;
 
-function FindInDict(D: TDictionary; str: string): shortint;
+  TEncodedString = array of byte;
+
+function FindInDict(D: TDictionary; str: ShortString): integer;
 var
-  r: shortint;
-  i: shortint;
+  r: integer;
+  i: integer;
   fl: boolean;
 begin
   r := -1;
   if D.WordCount > 0 then
   begin
-    i := D.WordCount;
+    i := D.WordCount - 1;
     fl := false;
     while (not fl) and (i >= 0) do
     begin
@@ -39,9 +41,9 @@ begin
   FindInDict := r;
 end;
 
-procedure AddToDict(var D: TDictionary; str: string);
+procedure AddToDict(var D: TDictionary; str: ShortString);
 begin
-  if D.WordCount < MAX_WORD_COUNT - 1 then
+  if D.WordCount < MAX_WORD_COUNT then
   begin
     D.WordCount := D.WordCount + 1;
     SetLength(D.Words, D.WordCount);
@@ -49,38 +51,46 @@ begin
   end;
 end;
 
-function LZWEncoding(InMsg: string): string;
+procedure InitDict(var D: TDictionary);
 var
-  OutMsg: string;
-  tmpstr: string;
-  D: TDictionary;
-  i: byte;
+  c: ANSIChar;
 begin
-  OutMsg := '';
   D.WordCount := 0;
   D.Words := nil;
-  for i := 1 to length(InMsg) do
-    if FindInDict(D, InMsg[i]) = -1 then
-      AddToDict(D, InMsg[i]);
+  for c := 'a' to 'z' do
+    AddToDict(D, c);
+end;
 
+function LZWEncoding(InMsg: ShortString): TEncodedString;
+var
+  OutMsg: TEncodedString;
+  tmpstr: ShortString;
+  D: TDictionary;
+  i, N: byte;
+begin
+  SetLength(OutMsg, length(InMsg));
+  N := 0;
+  InitDict(D);
   while length(InMsg) > 0 do
   begin
     tmpstr := InMsg[1];
     while (FindInDict(D, tmpstr) >= 0) and (length(InMsg) > length(tmpstr)) do
       tmpstr := tmpstr + InMsg[length(tmpstr) + 1];
-    if length(tmpstr) < length(InMsg) then
+    if FindInDict(D, tmpstr) < 0 then
       delete(tmpstr, length(tmpstr), 1);
-    OutMsg := OutMsg + IntToStr(FindInDict(D, tmpstr)) + ' ';
+    OutMsg[N] := FindInDict(D, tmpstr);
+    N := N + 1;
     delete(InMsg, 1, length(tmpstr));
     if length(InMsg) > 0 then
       AddToDict(D, tmpstr + InMsg[1]);
   end;
+  SetLength(OutMsg, N);
   LZWEncoding := OutMsg;
 end;
 
 begin
   try
-    writeln(LZWEncoding('mamamamamama'));
+    writeln(length(LZWEncoding('aaaaaaaaaabcd')));
     readln;
   except
     on E: Exception do
