@@ -7,7 +7,7 @@ const
 
 type
   TDictionary = record
-    WordCount: byte;
+    WordCount: integer;
     Words: array of ShortString;
   end;
 
@@ -25,9 +25,10 @@ var
   fl: boolean;
 begin
   r := -1;
-  if D.WordCount > 0 then
+  fl := false;
+  i := D.WordCount;
+  if i > 0 then
   begin
-    i := D.WordCount;
     fl := false;
     while (not fl) and (i >= 0) do
     begin
@@ -42,7 +43,7 @@ end;
 
 procedure AddToDict(var D: TDictionary; str: ShortString);
 begin
-  if D.WordCount < MAX_DICT_LENGTH then
+  if D.WordCount < MAX_DICT_LENGTH - 1 then
   begin
     D.WordCount := D.WordCount + 1;
     SetLength(D.Words, D.WordCount);
@@ -65,7 +66,7 @@ var
   OutMsg: TEncodedString;
   tmpstr: ShortString;
   D: TDictionary;
-  i, N: byte;
+  N: byte;
 begin
   SetLength(OutMsg, length(InMsg));
   N := 0;
