@@ -27,18 +27,16 @@ begin
   r := -1;
   if D.WordCount > 0 then
   begin
-    i := D.WordCount - 1;
+    i := D.WordCount;
     fl := false;
     while (not fl) and (i >= 0) do
     begin
-      if D.Words[i] = str then
-      begin
-        fl := true;
-        r := i;
-      end;
       i := i - 1;
+      fl := D.Words[i] = str;
     end;
   end;
+  if fl then
+    r := i;
   FindInDict := r;
 end;
 
